@@ -79,6 +79,22 @@ try {
     }
 
     if ($Apply) {
+        $defaultChoice = 0
+        if (!$Force) {
+            # Prompt to continue
+            $choices = @(
+                [System.Management.Automation.Host.ChoiceDescription]::new("&Continue", "Deploy infrastructure")
+                [System.Management.Automation.Host.ChoiceDescription]::new("&Exit", "Abort infrastructure deployment")
+            )
+            $decision = $Host.UI.PromptForChoice("Continue", "Do you wish to proceed executing Terraform plan $planFile in workspace $workspace?", $choices, $defaultChoice)
+
+            if ($decision -eq 0) {
+                Write-Host "$($choices[$decision].HelpMessage)"
+            } else {
+                Write-Host "$($PSStyle.Formatting.Warning)$($choices[$decision].HelpMessage)$($PSStyle.Reset)"
+                exit                    
+            }
+        }        
         Invoke "terraform apply $forceArgs '$planFile'"
     }
 
