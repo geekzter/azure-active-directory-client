@@ -19,3 +19,11 @@ module application {
   name                         = "${var.resource_prefix}-aad-token-${local.suffix}"
   owner_object_id              = local.owner_object_id
 }
+
+module environment_variables {
+  source                       = "./modules/environment-script"
+  environment_variables        = {
+    AZURE_CLIENT_ID            = module.application.application_id
+    AZURE_TENANT_ID            = module.application.application_tenant_id
+  }
+}

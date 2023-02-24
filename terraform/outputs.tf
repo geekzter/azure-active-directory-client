@@ -23,6 +23,9 @@ output application_tenant_id {
   value       = module.application.application_tenant_id
 }
 
+output environment_variables_script {
+  value       = module.environment_variables.file_name
+}
 
 output terraform_client_id {
   value       = data.azuread_client_config.current.client_id
