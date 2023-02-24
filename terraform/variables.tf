@@ -11,3 +11,8 @@ variable resource_suffix {
   description                  = "The suffix to put at the of resource names created"
   default                      = "" # Empty string triggers a random suffix
 }
+
+variable tenant_id {
+  type                         = string
+  default                      = ""
+}
