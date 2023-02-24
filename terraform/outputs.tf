@@ -23,8 +23,11 @@ output application_tenant_id {
   value       = module.application.application_tenant_id
 }
 
-output environment_variables_script {
+output environment_variables_script_relative_path {
   value       = module.environment_variables.file_name
+}
+output environment_variables_script_absolute_path {
+  value       = abspath(module.environment_variables.file_name)
 }
 
 output terraform_client_id {

@@ -16,7 +16,7 @@ locals {
 
 module application {
   source                       = "./modules/application"
-  name                         = "${var.resource_prefix}-aad-token-${local.suffix}"
+  name                         = "${var.resource_prefix}-aad-token-${terraform.workspace}-${local.suffix}"
   owner_object_id              = local.owner_object_id
 }
 
