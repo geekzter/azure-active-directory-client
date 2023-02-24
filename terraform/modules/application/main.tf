@@ -7,6 +7,12 @@ resource azuread_application app {
   owners                       = [var.owner_object_id]
   sign_in_audience             = "AzureADMyOrg"
   
+  api {
+    mapped_claims_enabled      = null
+  }
+  device_only_auth_enabled     = null
+  fallback_public_client_enabled = null
+  optional_claims {}
 
   required_resource_access {
     resource_app_id            = "499b84ac-1321-427f-aa17-267ca6975798" # Azure DevOps
@@ -33,10 +39,21 @@ resource azuread_application app {
     }
   }
 
-  web {
-    # implicit_grant {
-    #   access_token_issuance_enabled = true
-    # }
-    redirect_uris              = ["http://localhost/"]
+  public_client {
+    redirect_uris              = ["http://localhost"]
+  }
+}
+
+resource azuread_service_principal spn {
+  application_id               = azuread_application.app.application_id
+  owners                       = [var.owner_object_id]
+
+  feature_tags {
+    enterprise                 = true
+    hide                       = true
+  }
+
+  saml_single_sign_on {
+    relay_state                = null
   }
 }
