@@ -1,4 +1,18 @@
 #!/usr/bin/env pwsh
+#Requires -Version 7
+<# 
+.SYNOPSIS 
+    Performs e2e demo
+ 
+.DESCRIPTION
+    Performs end-to-end demo of application creation, sign in, and use of access token to install Azure Pipeline agent locally.   
+
+.EXAMPLE
+    ./demo.ps1
+ 
+.EXAMPLE
+    ./demo.ps1 -Workspace test
+#> 
 param ( 
     [parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]

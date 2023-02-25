@@ -1,6 +1,18 @@
 #!/usr/bin/env pwsh
 #Requires -Version 7
-[CmdletBinding(DefaultParameterSetName = 'GetToken')]
+<# 
+.SYNOPSIS 
+    Performs a device code login to Azure AD and returns the access token
+ 
+.EXAMPLE
+    ./login.ps1
+ 
+.EXAMPLE
+    ./login.ps1 -ClientId 00000000-0000-0000-0000-000000000000 -TenantId 00000000-0000-0000-0000-000000000000
+ 
+.EXAMPLE
+    ./login.ps1 -Workspace test
+#> 
 param ( 
     [parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
