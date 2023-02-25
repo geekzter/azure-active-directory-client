@@ -1,3 +1,8 @@
+variable resource_application_name {
+  description                  = "The name of the application to grant resource access to"
+  default                      = "AzureDevOps"
+}
+
 variable owner_object_id {
     default = ""
 }

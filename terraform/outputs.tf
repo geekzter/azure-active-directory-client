@@ -11,11 +11,11 @@ output application_principal_id {
   value       = module.application.application_principal_id
 }
 output application_portal_url {
-  description = "This is the URL to the Azure Portal Enterprise Application page for this application."
+  description = "This is the URL to the Azure Portal Enterprise Application (Service Principal) page for this application."
   value       = module.application.application_portal_url 
 }
 output application_registration_portal_url {
-  description = "This is the URL to the Azure Portal Application Registration (Service Principal) page for this application."
+  description = "This is the URL to the Azure Portal Application Registration page for this application."
   value       = module.application.application_registration_portal_url 
 }
 
@@ -38,4 +38,11 @@ output terraform_object_id {
 }
 output terraform_tenant_id {
   value       = data.azuread_client_config.current.tenant_id
+}
+
+output resource_application_id {
+  value       = module.resource_application.application_id
+}
+output oauth2_permission_scope_ids {
+  value       = module.resource_application.oauth2_permission_scope_ids
 }
