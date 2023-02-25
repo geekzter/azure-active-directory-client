@@ -100,6 +100,35 @@ function Build-TokenRequest (
     return $request
 }
 
+function Configure-TerraformWorkspace (
+    [parameter(Mandatory=$true)]
+    [string]
+    $Workspace=($env:TF_WORKSPACE ?? "default")
+) {
+    $terraformWorkspaceVars = (Join-Path (Split-Path $PSScriptRoot -Parent) terraform "${Workspace}.tfvars")
+    if (Test-Path $terraformWorkspaceVars) {
+        $regexCallback = {
+            $terraformEnvironmentVariableName = "ARM_$($args[0])".ToUpper()
+            $script:environmentVariableNames += $terraformEnvironmentVariableName
+            "`n`$env:${terraformEnvironmentVariableName}"
+        }
+
+        # Match relevant lines first
+        $terraformVarsFileContent = (Get-Content $terraformWorkspaceVars | Select-String "(?m)^[^#\w]*(client_id|client_secret|subscription_id|tenant_id)")
+        if ($terraformVarsFileContent) {
+            $envScript = [regex]::replace($terraformVarsFileContent,"(client_id|client_secret|subscription_id|tenant_id)",$regexCallback,[System.Text.RegularExpressions.RegexOptions]::Multiline)
+            if ($envScript) {
+                Write-Verbose $envScript
+                Invoke-Expression $envScript
+            } else {
+                Write-Warning "[regex]::replace removed all content from script"
+            }
+        } else {
+            Write-Verbose "No matches"
+        }
+    }
+}
+
 function Get-TerraformDirectory {
     return (Join-Path (Split-Path $PSScriptRoot -Parent) "terraform")
 }

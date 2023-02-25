@@ -13,6 +13,7 @@ try {
     Push-Location -Path $PSScriptRoot
 
     # Step 1: Create application with Terraform
+    Configure-TerraformWorkspace -Workspace $Workspace
     Prompt-User -PromptMessage "Create application with Terraform?" `
                 -ContinueMessage "Creating application with Terraform"
     $appWillBeCreated = [string]::IsNullOrEmpty((Get-TerraformOutput 'application_principal_id'))
