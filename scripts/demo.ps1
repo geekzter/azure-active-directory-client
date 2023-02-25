@@ -63,21 +63,21 @@ try {
     Prompt-User -PromptMessage "Log into AAD (opens browser window)?" `
                 -ContinueMessage "Opening browser window to log into AAD..."
     Write-Host "Running $(Resolve-Path ./login.ps1)"
-    ./login.ps1
+    ./login.ps1 | Set-Variable accessToken
 
-    # Step 3: Capture redirected url
-    Write-Host "Copy the url the browser redirects to (http://localhost/?code=...&state=...)"
-    Read-Host -Prompt "Paste url here" | Set-Variable redirectUrl
-    Write-Host "`nPasted url:`n $redirectUrl"
+    # # Step 3: Capture redirected url
+    # Write-Host "Copy the url the browser redirects to (http://localhost/?code=...&state=...)"
+    # Read-Host -Prompt "Paste url here" | Set-Variable redirectUrl
+    # Write-Host "`nPasted url:`n $redirectUrl"
 
-    # Step 4: Get token
-    ./login.ps1 -RedirectUrl $redirectUrl | Set-Variable accessToken
-    if ($accessToken) {
-        Write-Host "`nAccess token:`n $accessToken"            
-    } else {
-        Write-Error "Could not get access token from login.ps1"
-        exit 1
-    }
+    # # Step 4: Get token
+    # ./login.ps1 -RedirectUrl $redirectUrl | Set-Variable accessToken
+    # if ($accessToken) {
+    #     Write-Host "`nAccess token:`n $accessToken"            
+    # } else {
+    #     Write-Error "Could not get access token from login.ps1"
+    #     exit 1
+    # }
 } finally {
     Pop-Location
 }

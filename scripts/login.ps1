@@ -37,6 +37,56 @@ function Build-LoginUrl () {
     return $loginUrl
 }
 
+function Build-DeviceCodeRequest (
+    [parameter(Mandatory=$true)]
+    [string]
+    $State
+) {
+    $requestBody = @{
+        client_id    = $ClientId
+        redirect_uri = "https://login.microsoftonline.com/common/oauth2/nativeclient"
+        scope        = '499b84ac-1321-427f-aa17-267ca6975798/.default'
+        state        = $State
+    }
+    $requestBody | Format-Table | Out-String | Write-Debug
+    $request = @{
+        Method       = 'Post'
+        Uri          = "https://login.microsoftonline.com/${TenantID}/oauth2/devicecode"
+        ContentType  = 'application/x-www-form-urlencoded'
+        Body         = $requestBody
+    }
+    $request | Format-Table | Out-String | Write-Debug
+
+    return $request
+}
+
+function Build-DeviceCodeTokenRequest (
+    [parameter(Mandatory=$true)]
+    [string]
+    $Code,
+
+    [parameter(Mandatory=$false)]
+    [string]
+    $State
+) {
+    $requestBody = @{
+        grant_type  = "urn:ietf:params:oauth:grant-type:device_code"
+        code        = $Code
+        client_id   = $ClientId
+        state       = $State
+    }
+    $requestBody | Format-Table | Out-String | Write-Debug
+    $request = @{
+        Method      = 'POST'
+        Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/token"
+        ContentType = 'application/x-www-form-urlencoded'
+        Body        = $requestBody
+    }
+    $request | Format-Table | Out-String | Write-Debug
+
+    return $request
+}
+
 function Build-TokenRequest (
     [parameter(Mandatory=$false)]
     [string]
@@ -59,7 +109,7 @@ function Build-TokenRequest (
 
     $request = @{
         Method      = 'Post'
-        Uri         = [uri]"https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/token"
+        Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/token"
         ContentType = 'application/x-www-form-urlencoded'
         Body        = @{
             client_id     = $ClientId
@@ -87,16 +137,27 @@ if (Test-Path $envVarsScript) {
 }
 . $envVarsScript
 
-if (!$Code -and !$RedirectUrl) {
-    $loginUrl = Build-LoginUrl
-    # Write-Host $logonUrl
-    Open-Browser -Url $loginUrl 
-} else {
-    $tokenRequest = Build-TokenRequest -RedirectUrl $RedirectUrl
-    $tokenRequest | Format-Table | Out-String | Write-Debug
-    Invoke-RestMethod @tokenRequest | Set-Variable tokenResponse
+# Create token request
+$state = [guid]::NewGuid().Guid
+Build-DeviceCodeRequest -State $state | Set-Variable deviceCodeRequest
+Invoke-RestMethod @deviceCodeRequest | Set-Variable deviceCodeResponse
+[System.Diagnostics.Stopwatch]::StartNew() | Set-Variable timer
+$deviceCodeResponse | Format-List | Out-String | Write-Debug
+Set-Clipboard -Value $deviceCodeResponse.user_code
+Write-Host $deviceCodeResponse.message
+Open-Browser -Url $deviceCodeResponse.verification_url
 
-    $accessToken = $tokenResponse.access_token
-    Write-Debug "accessToken: ${accessToken}"
-    Write-Output $accessToken
-}
+# Poll for token
+Build-DeviceCodeTokenRequest -Code $deviceCodeResponse.device_code -State $state | Set-Variable tokenRequest
+do {
+    Start-Sleep -Seconds $deviceCodeResponse.interval
+    Invoke-RestMethod @tokenRequest `
+                      -SkipHttpErrorCheck `
+                      -StatusCodeVariable httpStatus `
+                      | Set-Variable tokenResponse
+    Write-Debug "httpStatus: ${httpStatus}"
+    $tokenResponse | Format-List | Out-String | Write-Debug
+} while (($tokenResponse.error -eq "authorization_pending") -and ($timer.Elapsed.TotalSeconds -le $deviceCodeResponse.expires_in))
+$accessToken = $tokenResponse.access_token
+Write-Debug "accessToken: ${accessToken}"
+Write-Output $accessToken

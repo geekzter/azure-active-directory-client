@@ -11,7 +11,7 @@ resource azuread_application app {
     mapped_claims_enabled      = null
   }
   device_only_auth_enabled     = null
-  fallback_public_client_enabled = null
+  fallback_public_client_enabled = true # Required for device code flow
   optional_claims {}
 
   required_resource_access {
