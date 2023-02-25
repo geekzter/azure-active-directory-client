@@ -43,6 +43,9 @@ output terraform_tenant_id {
 output resource_application_id {
   value       = module.resource_application.application_id
 }
-output oauth2_permission_scope_ids {
+output resource_application_app_role_ids {
+  value       = module.resource_application.app_role_ids
+}
+output resource_application_oauth2_permission_scope_ids {
   value       = module.resource_application.oauth2_permission_scope_ids
 }

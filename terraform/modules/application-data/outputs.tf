@@ -2,6 +2,10 @@ output application_id {
   value       = data.azuread_application_published_app_ids.microsoft.result[var.application_name]
 }
 
+output app_role_ids {
+  value       = data.azuread_service_principal.application.app_role_ids
+}
+
 output microsoft_applications {
   value       = data.azuread_application_published_app_ids.microsoft.result
 }
