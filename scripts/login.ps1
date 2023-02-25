@@ -68,6 +68,7 @@ do {
     Write-Debug "httpStatus: ${httpStatus}"
     $tokenResponse | Format-List | Out-String | Write-Debug
 } while (($tokenResponse.error -eq "authorization_pending") -and ($timer.Elapsed.TotalSeconds -le $deviceCodeResponse.expires_in))
+
 $accessToken = $tokenResponse.access_token
 Write-Debug "accessToken: ${accessToken}"
 Write-Output $accessToken
