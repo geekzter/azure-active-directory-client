@@ -6,6 +6,8 @@ param (
     $Workspace=($env:TF_WORKSPACE ?? 'default')
 ) 
 
+$env:TF_WORKSPACE = $Workspace
+
 function Prompt-User (
     [parameter(Mandatory=$false)][string]
     $PromptMessage = "Continue with next step",
@@ -31,6 +33,7 @@ function Prompt-User (
     }
 }
 
+$ErrorActionPreference = 'Stop'
 try {
     Push-Location -Path $PSScriptRoot
 

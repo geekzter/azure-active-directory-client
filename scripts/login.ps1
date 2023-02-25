@@ -2,17 +2,7 @@
 #Requires -Version 7
 [CmdletBinding(DefaultParameterSetName = 'GetToken')]
 param ( 
-    [parameter(Mandatory=$false,ParameterSetName="GetToken")]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $Code,
-
-    [parameter(Mandatory=$false,ParameterSetName="GetToken")]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $State,
-
-    [parameter(Mandatory=$false,ParameterSetName="GetTokenWithRedirectUrl",ValueFromPipeline=$true)]
+    [parameter(Mandatory=$false,ValueFromPipeline=$true)]
     [ValidateNotNullOrEmpty()]
     [string]
     $RedirectUrl,
@@ -37,24 +27,13 @@ function Build-LoginUrl () {
     return $loginUrl
 }
 
-function Build-TokenRequestBody (
-    [parameter(Mandatory=$true,ParameterSetName="Inline")]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $Code,
-
-    [parameter(Mandatory=$true,ParameterSetName="Inline")]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $State,
-
-    [parameter(Mandatory=$true,ParameterSetName="Url")]
-    [ValidateNotNullOrEmpty()]
+function Build-TokenRequest (
+    [parameter(Mandatory=$false)]
     [string]
     $RedirectUrl
 ) {
     if ($RedirectUrl) {
-        $RedirectUrl -match "http(s)?://[^\/]+/\?code=(?<code>[^\&]+)\&state=(?<state>[^\&]+)"
+        $RedirectUrl -match "http(s)?://[^\/]+/\?code=(?<code>[^\&]+)\&state=(?<state>[^\&]+)" | Out-Null
         $Matches | Out-String | Write-Debug
         $Code = $Matches['code']
         $State = $Matches['state']
@@ -68,15 +47,31 @@ function Build-TokenRequestBody (
     Write-Debug "Code: ${Code}"
     Write-Debug "State: ${State}"
 
-    $requestBody = "&client_id=${env:AZURE_CLIENT_ID}"
-    $requestBody += "&scope=499b84ac-1321-427f-aa17-267ca6975798%2F.default"
-    $requestBody += "&code=${Code}"
-    $requestBody += "&redirect_uri=http%3A%2F%2Flocalhost"
-    $requestBody += "&grant_type=authorization_code"
-    $requestBody += "&state=${State}"
-    Write-Debug "requestBody: ${requestBody}"
+    # $requestBody = "&client_id=${env:AZURE_CLIENT_ID}"
+    # $requestBody += "&scope=499b84ac-1321-427f-aa17-267ca6975798%2F.default"
+    # $requestBody += "&code=${Code}"
+    # $requestBody += "&redirect_uri=http%3A%2F%2Flocalhost"
+    # $requestBody += "&grant_type=authorization_code"
+    # $requestBody += "&state=${State}"
+    # Write-Debug "requestBody: ${requestBody}"
     
-    return $requestBody
+    $request = @{
+        Method      = 'Post'
+        Uri         = [uri]"https://login.microsoftonline.com/${env:AZURE_TENANT_ID}/oauth2/v2.0/token"
+        ContentType = 'application/x-www-form-urlencoded'
+        # Body        = $requestBody
+        Body        = @{
+            client_id     = $env:AZURE_CLIENT_ID
+            scope         = '499b84ac-1321-427f-aa17-267ca6975798/.default'
+            code          = $Code
+            redirect_uri  = 'http://localhost'
+            grant_type    = 'authorization_code'
+            state         = $State
+        }
+    }
+    $request | Format-Table | Out-String | Write-Debug
+
+    return $request
 }
 
 . (Join-Path $PSScriptRoot functions.ps1)
@@ -96,17 +91,9 @@ if (!$Code -and !$RedirectUrl) {
     # Write-Host $logonUrl
     Open-Browser -Url $loginUrl 
 } else {
-    if ($RedirectUrl) {
-        $requestBody = Build-TokenRequestBody -RedirectUrl $RedirectUrl
-    } elseif ($Code) {
-        $requestBody = Build-TokenRequestBody -Code $Code -State $State
-    }
-    $requestBody | Format-Table | Out-String | Write-Debug
-    Invoke-RestMethod -Uri "https://login.microsoftonline.com/${env:ARM_TENANT_ID}/oauth2/v2.0/token" `
-                      -Method Post `
-                      -ContentType 'application/x-www-form-urlencoded' `
-                      -Body $requestBody `
-                      | Set-Variable tokenResponse
+    $tokenRequest = Build-TokenRequest -RedirectUrl $RedirectUrl
+    $tokenRequest | Format-Table | Out-String | Write-Debug
+    Invoke-RestMethod @tokenRequest | Set-Variable tokenResponse
 
     $accessToken = $tokenResponse.access_token
     Write-Debug "accessToken: ${accessToken}"
