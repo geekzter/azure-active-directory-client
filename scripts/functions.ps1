@@ -1,3 +1,105 @@
+function Build-LoginUrl () {
+    $State ??= [guid]::NewGuid().Guid
+    $loginUrl = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/authorize"
+    $loginUrl += "?client_id=${ClientId}"
+    $loginUrl += "&scope=$([uri]::EscapeDataString('499b84ac-1321-427f-aa17-267ca6975798/.default'))"
+    $loginUrl += "&state=${State}"
+    $loginUrl += "&response_type=code"
+    $loginUrl += "&redirect_uri=$([uri]::EscapeDataString('http://localhost'))"
+    $loginUrl += "&response_mode=query"
+
+    Write-Debug "Login URL: ${loginUrl}"
+    return $loginUrl
+}
+
+function Build-DeviceCodeRequest (
+    [parameter(Mandatory=$true)]
+    [string]
+    $State
+) {
+    $requestBody = @{
+        client_id    = $ClientId
+        redirect_uri = "https://login.microsoftonline.com/common/oauth2/nativeclient"
+        scope        = '499b84ac-1321-427f-aa17-267ca6975798/.default'
+        state        = $State
+    }
+    $requestBody | Format-Table | Out-String | Write-Debug
+    $request = @{
+        Method       = 'Post'
+        Uri          = "https://login.microsoftonline.com/${TenantID}/oauth2/devicecode"
+        ContentType  = 'application/x-www-form-urlencoded'
+        Body         = $requestBody
+    }
+    $request | Format-Table | Out-String | Write-Debug
+
+    return $request
+}
+
+function Build-DeviceCodeTokenRequest (
+    [parameter(Mandatory=$true)]
+    [string]
+    $Code,
+
+    [parameter(Mandatory=$false)]
+    [string]
+    $State
+) {
+    $requestBody = @{
+        grant_type  = "urn:ietf:params:oauth:grant-type:device_code"
+        code        = $Code
+        client_id   = $ClientId
+        state       = $State
+    }
+    $requestBody | Format-Table | Out-String | Write-Debug
+    $request = @{
+        Method      = 'POST'
+        Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/token"
+        ContentType = 'application/x-www-form-urlencoded'
+        Body        = $requestBody
+    }
+    $request | Format-Table | Out-String | Write-Debug
+
+    return $request
+}
+
+function Build-TokenRequest (
+    [parameter(Mandatory=$false)]
+    [string]
+    $RedirectUrl
+) {
+    if ($RedirectUrl) {
+        $RedirectUrl -match "http(s)?://[^\/]+/\?code=(?<code>[^\&]+)\&state=(?<state>[^\&]+)" | Out-Null
+        $Matches | Out-String | Write-Debug
+        $Code = $Matches['code']
+        $State = $Matches['state']
+    }
+    if (!$Code) {
+        throw "Code is required"
+    }
+    if (!$State) {
+        throw "State is required"
+    }
+    Write-Debug "Code: ${Code}"
+    Write-Debug "State: ${State}"
+
+    $request = @{
+        Method      = 'Post'
+        Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/token"
+        ContentType = 'application/x-www-form-urlencoded'
+        Body        = @{
+            client_id     = $ClientId
+            scope         = '499b84ac-1321-427f-aa17-267ca6975798/.default'
+            code          = $Code
+            redirect_uri  = 'http://localhost'
+            grant_type    = 'authorization_code'
+            state         = $State
+        }
+    }
+    $request | Format-Table | Out-String | Write-Debug
+
+    return $request
+}
+
 function Get-TerraformDirectory {
     return (Join-Path (Split-Path $PSScriptRoot -Parent) "terraform")
 }

@@ -34,14 +34,15 @@ function Prompt-User (
 }
 
 $ErrorActionPreference = 'Stop'
+
 try {
     Push-Location -Path $PSScriptRoot
 
     # Step 1: Create application with Terraform
     Prompt-User -PromptMessage "Create application with Terraform?" `
                 -ContinueMessage "Creating application with Terraform"
-    Write-Host "Running $(Resolve-Path ./deploy.ps1).Path"
-    ./deploy.ps1
+    Write-Host "Running $(Resolve-Path ./deploy.ps1)"
+    ./deploy.ps1 -apply
     Write-Host "`nEnterprise Application (Service Principal) url:"
     terraform -chdir='../terraform' output application_portal_url
     Write-Host "`nApplication registration url:"
@@ -64,20 +65,6 @@ try {
                 -ContinueMessage "Opening browser window to log into AAD..."
     Write-Host "Running $(Resolve-Path ./login.ps1)"
     ./login.ps1 | Set-Variable accessToken
-
-    # # Step 3: Capture redirected url
-    # Write-Host "Copy the url the browser redirects to (http://localhost/?code=...&state=...)"
-    # Read-Host -Prompt "Paste url here" | Set-Variable redirectUrl
-    # Write-Host "`nPasted url:`n $redirectUrl"
-
-    # # Step 4: Get token
-    # ./login.ps1 -RedirectUrl $redirectUrl | Set-Variable accessToken
-    # if ($accessToken) {
-    #     Write-Host "`nAccess token:`n $accessToken"            
-    # } else {
-    #     Write-Error "Could not get access token from login.ps1"
-    #     exit 1
-    # }
 } finally {
     Pop-Location
 }
