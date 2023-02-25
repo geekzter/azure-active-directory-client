@@ -103,6 +103,11 @@ function Build-TokenRequest (
 function Get-TerraformDirectory {
     return (Join-Path (Split-Path $PSScriptRoot -Parent) "terraform")
 }
+function Get-TerraformOutput (
+    [parameter(Mandatory=$true)][string]$outputName
+) {
+    terraform -chdir='../terraform' output -json $outputName 2>$null | ConvertFrom-Json | Write-Output
+}
 
 function Login-Az (
     [parameter(Mandatory=$false)][switch]$DisplayMessages=$false
@@ -157,6 +162,31 @@ function Open-Browser (
     }
     if ($IsWindows) {
         start $Url
+    }
+}
+
+function Prompt-User (
+    [parameter(Mandatory=$false)][string]
+    $PromptMessage = "Continue with next step?",
+    [parameter(Mandatory=$false)][string]
+    $ContinueMessage = "Continue with next step",
+    [parameter(Mandatory=$false)][string]
+    $AbortMessage = "Aborting demo"
+) {
+    $defaultChoice = 0
+    # Prompt to continue
+    $choices = @(
+        [System.Management.Automation.Host.ChoiceDescription]::new("&Continue", $ContinueMessage)
+        [System.Management.Automation.Host.ChoiceDescription]::new("&Exit", $AbortMessage)
+    )
+    $decision = $Host.UI.PromptForChoice("`n", $PromptMessage, $choices, $defaultChoice)
+    Write-Debug "Decision: $decision"
+
+    if ($decision -eq 0) {
+        Write-Host "$($choices[$decision].HelpMessage)"
+    } else {
+        Write-Host "$($PSStyle.Formatting.Warning)$($choices[$decision].HelpMessage)$($PSStyle.Reset)"
+        exit $decision             
     }
 }
 

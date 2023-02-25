@@ -5,35 +5,9 @@ param (
     [string]
     $Workspace=($env:TF_WORKSPACE ?? 'default')
 ) 
-
 $env:TF_WORKSPACE = $Workspace
-
-function Prompt-User (
-    [parameter(Mandatory=$false)][string]
-    $PromptMessage = "Continue with next step",
-    [parameter(Mandatory=$false)][string]
-    $ContinueMessage = "Continue with next step",
-    [parameter(Mandatory=$false)][string]
-    $AbortMessage = "Aborting demo"
-) {
-    $defaultChoice = 0
-    # Prompt to continue
-    $choices = @(
-        [System.Management.Automation.Host.ChoiceDescription]::new("&Continue", $ContinueMessage)
-        [System.Management.Automation.Host.ChoiceDescription]::new("&Exit", $AbortMessage)
-    )
-    $decision = $Host.UI.PromptForChoice("`n", $PromptMessage, $choices, $defaultChoice)
-    Write-Debug "Decision: $decision"
-
-    if ($decision -eq 0) {
-        Write-Host "$($choices[$decision].HelpMessage)"
-    } else {
-        Write-Host "$($PSStyle.Formatting.Warning)$($choices[$decision].HelpMessage)$($PSStyle.Reset)"
-        exit $decision             
-    }
-}
-
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot functions.ps1)
 
 try {
     Push-Location -Path $PSScriptRoot
@@ -41,12 +15,19 @@ try {
     # Step 1: Create application with Terraform
     Prompt-User -PromptMessage "Create application with Terraform?" `
                 -ContinueMessage "Creating application with Terraform"
+    $appWillBeCreated = [string]::IsNullOrEmpty((Get-TerraformOutput 'application_principal_id'))
     Write-Host "Running $(Resolve-Path ./deploy.ps1)"
     ./deploy.ps1 -apply
     Write-Host "`nEnterprise Application (Service Principal) url:"
-    terraform -chdir='../terraform' output application_portal_url
+    Get-TerraformOutput 'application_portal_url'
+    if ($appWillBeCreated) {
+        Open-Browser -Url (Get-TerraformOutput 'application_portal_url')
+    }
     Write-Host "`nApplication registration url:"
-    terraform -chdir='../terraform' output application_registration_portal_url
+    Get-TerraformOutput 'application_registration_portal_url'
+    if ($appWillBeCreated) {
+        Open-Browser -Url (Get-TerraformOutput 'application_registration_portal_url')
+    }
 
     # Step 1a: Propagate Terraform output to environment variables
     Join-Path (Split-Path $PSScriptRoot -Parent) data $Workspace set_environment_variables.ps1 | Set-Variable envVarsScript
