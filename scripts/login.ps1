@@ -68,12 +68,12 @@ function Build-TokenRequestBody (
     Write-Debug "Code: ${Code}"
     Write-Debug "State: ${State}"
 
-    $requestBody = "&scope=499b84ac-1321-427f-aa17-267ca6975798%2F.default"
+    $requestBody = "&client_id=${env:AZURE_CLIENT_ID}"
+    $requestBody += "&scope=499b84ac-1321-427f-aa17-267ca6975798%2F.default"
     $requestBody += "&code=${Code}"
     $requestBody += "&redirect_uri=http%3A%2F%2Flocalhost"
     $requestBody += "&grant_type=authorization_code"
     $requestBody += "&state=${State}"
-    $requestBody += "&client_id=${env:AZURE_CLIENT_ID}"
     Write-Debug "requestBody: ${requestBody}"
     
     return $requestBody
