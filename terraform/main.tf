@@ -34,10 +34,3 @@ module environment_variables {
     AZURE_TENANT_ID            = module.application.application_tenant_id
   }
 }
-
-data azuread_application_published_app_ids microsoft {}
-
-data azuread_service_principal azure_dev_ops {
-  # application_id               = data.azuread_application_published_app_ids.microsoft.result.AzureDevOps
-  application_id               = data.azuread_application_published_app_ids.microsoft.result["AzureDevOps"]
-}
