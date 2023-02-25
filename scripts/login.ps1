@@ -2,6 +2,16 @@
 #Requires -Version 7
 [CmdletBinding(DefaultParameterSetName = 'GetToken')]
 param ( 
+    [parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [guid]
+    $ClientId=($env:AZURE_CLIENT_ID ?? $env:ARM_CLIENT_ID),
+
+    [parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [guid]
+    $TenantId=($env:AZURE_TENANT_ID ?? $env:ARM_TENANT_ID),
+
     [parameter(Mandatory=$false,ValueFromPipeline=$true)]
     [ValidateNotNullOrEmpty()]
     [string]
@@ -15,8 +25,8 @@ param (
 
 function Build-LoginUrl () {
     $State ??= [guid]::NewGuid().Guid
-    $loginUrl = "https://login.microsoftonline.com/${env:AZURE_TENANT_ID}/oauth2/v2.0/authorize"
-    $loginUrl += "?client_id=${env:AZURE_CLIENT_ID}"
+    $loginUrl = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/authorize"
+    $loginUrl += "?client_id=${ClientId}"
     $loginUrl += "&scope=499b84ac-1321-427f-aa17-267ca6975798%2F.default"
     $loginUrl += "&state=${State}"
     $loginUrl += "&response_type=code"
@@ -47,21 +57,12 @@ function Build-TokenRequest (
     Write-Debug "Code: ${Code}"
     Write-Debug "State: ${State}"
 
-    # $requestBody = "&client_id=${env:AZURE_CLIENT_ID}"
-    # $requestBody += "&scope=499b84ac-1321-427f-aa17-267ca6975798%2F.default"
-    # $requestBody += "&code=${Code}"
-    # $requestBody += "&redirect_uri=http%3A%2F%2Flocalhost"
-    # $requestBody += "&grant_type=authorization_code"
-    # $requestBody += "&state=${State}"
-    # Write-Debug "requestBody: ${requestBody}"
-    
     $request = @{
         Method      = 'Post'
-        Uri         = [uri]"https://login.microsoftonline.com/${env:AZURE_TENANT_ID}/oauth2/v2.0/token"
+        Uri         = [uri]"https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/token"
         ContentType = 'application/x-www-form-urlencoded'
-        # Body        = $requestBody
         Body        = @{
-            client_id     = $env:AZURE_CLIENT_ID
+            client_id     = $ClientId
             scope         = '499b84ac-1321-427f-aa17-267ca6975798/.default'
             code          = $Code
             redirect_uri  = 'http://localhost'
