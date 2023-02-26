@@ -1,5 +1,8 @@
-# $scope = "${env:DEMO_RESOURCE_APP_ID}/.default"
-$scope = "499b84ac-1321-427f-aa17-267ca6975798/.default"
+if ($env:DEMO_RESOURCE_APP_ID) {
+    $scope = "${env:DEMO_RESOURCE_APP_ID}/.default"
+} else {
+    $scope = "499b84ac-1321-427f-aa17-267ca6975798/.default"
+}
 
 function Build-LoginUrl () {
     Write-Debug "scope: ${scope}"

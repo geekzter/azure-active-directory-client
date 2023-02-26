@@ -5,21 +5,21 @@ resource azuread_application app_registration {
  
   # Required for device code flow to prevent 'error "invalid_client" occurred while requesting token: AADSTS7000218: The request body must contain the following parameter: 'client_assertion' or 'client_secret'.'
   fallback_public_client_enabled = true 
+
+  feature_tags {
+    enterprise                 = true
+    hide                       = true
+  }
  
   owners                       = [var.owner_object_id]
   sign_in_audience             = "AzureADMyOrg"
   
-  # api {
-  #   mapped_claims_enabled      = null
-  # }
-  # device_only_auth_enabled     = null
-
-  
-  # optional_claims {}
-
-  # public_client {
-  #   redirect_uris              = ["http://localhost"]
-  # }
+  public_client {
+    redirect_uris              = [
+      "http://localhost",
+      "https://login.microsoftonline.com/common/oauth2/nativeclient"
+    ]
+  }
 
   required_resource_access {
     resource_app_id            = var.resource_app_id
