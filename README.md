@@ -3,7 +3,7 @@
 Demonstrates the use of AAD sign in from PowerShell script, leveraging [device authorization grant flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code). See [Headless samples](https://learn.microsoft.com/azure/active-directory/develop/sample-v2-code#headless) for C#, Java, Python flavors.
 
 ## Setup
-TThis repo contains Terraform templates to create the AAD application needed to perform authentication, and PowerShell scripts to handle the authentication itself.
+This repo contains Terraform templates to create the AAD application needed to perform authentication, and PowerShell scripts to handle the authentication itself.
 
 ### Create AAD application with Terraform
 Specific [settings](terraform/modules/application/main.tf) that make device code flow work are:
@@ -40,7 +40,7 @@ And:
 Steps:  
 
 - Set the `tenant_id` Terraform variable or `ARM_TENANT_ID` environment variable to a tenant you have [permission to consent applications](https://learn.microsoft.com/azure/active-directory/manage-apps/configure-user-consent?pivots=portal) in
-- Set the `resource_application_name` Terraform variable to a well known application you want to sign in to, see [`application_published_app_ids`](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/application_published_app_ids) data source.
+- Set the `resource_application_name` Terraform variable to a well known application you want to sign in to, see [`application_published_app_ids`](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/application_published_app_ids) data source. You can also uncomment the `microsoft_applications` output to list well known application names.
 - Initialize workspace with `terraform init`
 - Provision resources with `terraform apply` or running [`deploy.ps1`](scripts/deploy.ps1)
 

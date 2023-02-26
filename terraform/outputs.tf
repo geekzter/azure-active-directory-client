@@ -30,9 +30,10 @@ output environment_variables_script_absolute_path {
   value       = abspath(module.environment_variables.file_name)
 }
 
-output microsoft_applications {
-  value       = module.resource_application.microsoft_applications
-}
+# Uncomment to discover common application names and IDs
+# output microsoft_applications {
+#   value       = module.resource_application.microsoft_applications
+# }
 
 output terraform_client_id {
   value       = data.azuread_client_config.current.client_id

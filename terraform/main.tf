@@ -15,7 +15,7 @@ locals {
 }
 
 module resource_application {
-  source                       = "./modules/application-data"
+  source                       = "./modules/microsoft-application-info"
   application_name             = var.resource_application_name
 }
 
