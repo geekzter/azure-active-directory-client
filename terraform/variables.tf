@@ -1,5 +1,6 @@
 variable resource_application_name {
-  description                  = "The name of the application to grant resource access to"
+  # https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/application_published_app_ids
+  description                  = "The name of the application to grant resource access to (no apaces)"
   default                      = "AzureDevOps"
 }
 

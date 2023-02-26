@@ -7,11 +7,14 @@ resource azuread_application app_registration {
   owners                       = [var.owner_object_id]
   sign_in_audience             = "AzureADMyOrg"
   
-  api {
-    mapped_claims_enabled      = null
-  }
-  device_only_auth_enabled     = null
-  fallback_public_client_enabled = true # Required for device code flow
+  # api {
+  #   mapped_claims_enabled      = null
+  # }
+  # device_only_auth_enabled     = null
+
+  # Required for device code flow to prevent 'error "invalid_client" occurred while requesting token: AADSTS7000218: The request body must contain the following parameter: 'client_assertion' or 'client_secret'.'
+  fallback_public_client_enabled = true 
+  
   optional_claims {}
 
   required_resource_access {
