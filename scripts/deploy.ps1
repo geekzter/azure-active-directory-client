@@ -64,7 +64,7 @@ try {
         $forceArgs = "-auto-approve"
     }
 
-    if (!(Get-ChildItem env:TF_VAR_*) -and (Test-Path $varsFile)) {
+    if (Test-Path $varsFile) {
         # Load variables from file, if it exists and environment variables have not been set
         $varArgs = " -var-file='$varsFile'"
     }

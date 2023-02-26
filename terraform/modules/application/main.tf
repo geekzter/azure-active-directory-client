@@ -1,7 +1,5 @@
 data azuread_client_config current {}
 
-resource random_uuid "widgets_scope_id" {}
-
 resource azuread_application app_registration {
   display_name                 = var.name
  
@@ -19,9 +17,9 @@ resource azuread_application app_registration {
   
   # optional_claims {}
 
-  public_client {
-    redirect_uris              = ["http://localhost"]
-  }
+  # public_client {
+  #   redirect_uris              = ["http://localhost"]
+  # }
 
   required_resource_access {
     resource_app_id            = var.resource_app_id

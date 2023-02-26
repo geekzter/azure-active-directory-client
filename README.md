@@ -6,7 +6,7 @@ Demonstrates the use of AAD sign in from PowerShell script, leveraging [device a
 TThis repo contains Terraform templates to create the AAD application needed to perform authentication, and PowerShell scripts to handle the authentication itself.
 
 ### Create AAD application with Terraform
-Specific [settings](terraform/modules/application/main.tf) to make device code flow work are:
+Specific [settings](terraform/modules/application/main.tf) that make device code flow work are:
 
 ```hcl
   fallback_public_client_enabled = true 
@@ -29,11 +29,23 @@ Specific [settings](terraform/modules/application/main.tf) to make device code f
     }
   }
 ```
-- Set the `tenant_id` Terraform variable or `ARM_TENANT_ID` environment variable to a tenant you have permission to consent applications in
+Which will show up in the portal as:
+<p align="center">
+<img src="visuals/public-client.png" width="640">
+</p>   
+And:
+<p align="center">
+<img src="visuals/api-permissions.png" width="640">
+</p>   
+Steps:  
+
+- Set the `tenant_id` Terraform variable or `ARM_TENANT_ID` environment variable to a tenant you have [permission to consent applications](https://learn.microsoft.com/azure/active-directory/manage-apps/configure-user-consent?pivots=portal) in
 - Set the `resource_application_name` Terraform variable to a well known application you want to sign in to, see [`application_published_app_ids`](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/application_published_app_ids) data source.
 - Initialize workspace with `terraform init`
-- Provision resources with `terraform apply`, OR:
-- Running [`deploy.ps1`](scripts/deploy.ps1)
+- Provision resources with `terraform apply` or running [`deploy.ps1`](scripts/deploy.ps1)
 
 ### Login with PowerShell
 Once the AAD application is provisioned, run [`login.ps1`](scripts/login.ps1) to get an AAD token for the resource configured. This script will propagate the appId of the AAD application created.
+
+### End-to-end demo
+You can run AAD application provisioning and login using a single script: [`demo.ps1`](scripts/demo.ps1).

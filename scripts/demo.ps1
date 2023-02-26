@@ -65,7 +65,7 @@ try {
     Pop-Location
 }
 
-# Step 5: Use token to install agent locally
+# Step 5: Use token to install Azure Pipelines agent locally
 if (Test-Path ../../azure-pipeline-scripts/scripts/install_agent.ps1) {
     try {
         Push-Location -Path ../../azure-pipeline-scripts/scripts
@@ -79,6 +79,5 @@ if (Test-Path ../../azure-pipeline-scripts/scripts/install_agent.ps1) {
         Pop-Location
     }
 } else {
-    Write-Warning "Could not find ../../azure-pipeline-scripts/scripts/install_agent.ps1 script. Please clone https://github.com/geekzter/azure-pipeline-scripts into ../../azure-pipeline-scripts"
-    exit 1
+    Write-Verbose "Could not find ../../azure-pipeline-scripts/scripts/install_agent.ps1 script. Please clone https://github.com/geekzter/azure-pipeline-scripts into ../../azure-pipeline-scripts"
 }

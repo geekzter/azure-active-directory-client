@@ -30,6 +30,10 @@ output environment_variables_script_absolute_path {
   value       = abspath(module.environment_variables.file_name)
 }
 
+output microsoft_applications {
+  value       = module.resource_application.microsoft_applications
+}
+
 output terraform_client_id {
   value       = data.azuread_client_config.current.client_id
 }
@@ -43,9 +47,12 @@ output terraform_tenant_id {
 output resource_application_id {
   value       = module.resource_application.application_id
 }
-output resource_application_app_role_ids {
-  value       = module.resource_application.app_role_ids
+output resource_application_name {
+  value       = var.resource_application_name
 }
-output resource_application_oauth2_permission_scope_ids {
-  value       = module.resource_application.oauth2_permission_scope_ids
-}
+# output resource_application_app_role_ids {
+#   value       = module.resource_application.app_role_ids
+# }
+# output resource_application_oauth2_permission_scope_ids {
+#   value       = module.resource_application.oauth2_permission_scope_ids
+# }
