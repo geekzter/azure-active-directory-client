@@ -20,7 +20,11 @@ Users can't access the application:
 <p align="center">
 <img src="visuals/admin-consent-required.png" width="361">
 </p>   
-Until an admin has provided consent:
+Until an admin has provided consent from the portal:
 <p align="center">
 <img src="visuals/admin-consent.png" width="481">
+</p>   
+Or when logging into the application:
+<p align="center">
+<img src="visuals/user-and-admin-consent.png" width="379">
 </p>   
