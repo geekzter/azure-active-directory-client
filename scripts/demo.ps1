@@ -18,6 +18,11 @@ param (
     [string]
     [ValidateSet("AuthorizationCode","DeviceCode")]
     $GrantType="DeviceCode",
+    
+    [parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $OrganizationUrl=$env:AZDO_ORG_SERVICE_URL,
 
     [parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
@@ -89,16 +94,20 @@ try {
 # Use token to install Azure Pipelines agent locally
 if (Test-Path ../../azure-pipeline-scripts/scripts/install_agent.ps1) {
     try {
+        if (!$OrganizationUrl) {
+            Write-Warning "OrganizationUrl is not provided. Please set AZDO_ORG_SERVICE_URL environment variable or pass -OrganizationUrl parameter."
+            exit 1
+        }
         Push-Location -Path ../../azure-pipeline-scripts/scripts
 
         Prompt-User -PromptMessage "Install Azure Pipeline agent locally?" `
                     -ContinueMessage "Installing Azure Pipeline agent locally..."
 
         Write-Host "Running $(Resolve-Path ./install_agent.ps1) to install agent"
-        ./install_agent.ps1 -Token $accessToken
+        ./install_agent.ps1 -OrganizationUrl $OrganizationUrl -Token $accessToken
 
         Write-Host "Running $(Resolve-Path ./install_agent.ps1) to remove agent"
-        ./install_agent.ps1 -Token $accessToken -Remove
+        ./install_agent.ps1 -OrganizationUrl $OrganizationUrl -Token $accessToken -Remove
     } finally {
         Pop-Location
     }
