@@ -30,6 +30,11 @@ param (
     $RedirectUrl,
 
     [parameter(Mandatory=$false)]
+    [string]
+    [ValidateSet("AuthorizationCode","DeviceCode")]
+    $GrantType="DeviceCode",
+
+    [parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
     [string]
     $Workspace=($env:TF_WORKSPACE ?? 'default')
@@ -49,50 +54,68 @@ if (Test-Path $envVarsScript) {
 
 # Create token request
 $state = [guid]::NewGuid().Guid
-Build-DeviceCodeRequest -State $state | Set-Variable deviceCodeRequest
 
-# There may be a race condition if the app was just created, try to get device code a few times
-[int]$tries = 0
-[int]$maxTries = 5
-do {
-    $tries++
-    # Invoke-RestMethod @deviceCodeRequest | Set-Variable deviceCodeResponse
-    Invoke-RestMethod @deviceCodeRequest `
-                      -SkipHttpErrorCheck `
-                      -StatusCodeVariable httpStatus `
-                      | Set-Variable deviceCodeResponse
-    Write-Debug "httpStatus: ${httpStatus}"
+if ($GrantType -eq "DeviceCode") {
+    # There may be a race condition if the app was just created, try to get device code a few times
+    Build-DeviceCodeRequest -State $state | Set-Variable deviceCodeRequest
+    [int]$tries = 0
+    [int]$maxTries = 5
+    do {
+        $tries++
+        # Invoke-RestMethod @deviceCodeRequest | Set-Variable deviceCodeResponse
+        Invoke-RestMethod @deviceCodeRequest `
+                        -SkipHttpErrorCheck `
+                        -StatusCodeVariable httpStatus `
+                        | Set-Variable deviceCodeResponse
+        Write-Debug "httpStatus: ${httpStatus}"
+        $deviceCodeResponse | Format-List | Out-String | Write-Debug
+        if ($deviceCodeResponse.error_description -match "AADSTS700016") {
+            Write-Warning "The app doesn't exist (yet?), retrying in 5 seconds"
+            Start-Sleep -Seconds 5
+        }
+    } while (($deviceCodeResponse.error_description -match "AADSTS700016") -and ($tries -lt $maxTries))
+
+    # Prompt user to enter code
+    [System.Diagnostics.Stopwatch]::StartNew() | Set-Variable timer
     $deviceCodeResponse | Format-List | Out-String | Write-Debug
-    if ($deviceCodeResponse.error_description -match "AADSTS700016") {
-        Write-Warning "The app doesn't exist (yet?), retrying in 5 seconds"
-        Start-Sleep -Seconds 5
+    Set-Clipboard -Value $deviceCodeResponse.user_code
+    Write-Host $deviceCodeResponse.message
+    Open-Browser -Url $deviceCodeResponse.verification_url
+
+    # Poll for token
+    Build-DeviceCodeTokenRequest -Code $deviceCodeResponse.device_code -State $state | Set-Variable tokenRequest
+    do {
+        Start-Sleep -Seconds $deviceCodeResponse.interval
+        Invoke-RestMethod @tokenRequest `
+                        -SkipHttpErrorCheck `
+                        -StatusCodeVariable httpStatus `
+                        | Set-Variable tokenResponse
+        Write-Debug "httpStatus: ${httpStatus}"
+        $tokenResponse | Format-List | Out-String | Write-Debug
+    } while (($tokenResponse.error -eq "authorization_pending") -and ($timer.Elapsed.TotalSeconds -le $deviceCodeResponse.expires_in))
+
+    $accessToken = $tokenResponse.access_token
+    if (!$accessToken) {
+        Write-Error "Failed to get access token"
+        $tokenResponse | Format-List
+        exit 1
     }
-} while (($deviceCodeResponse.error_description -match "AADSTS700016") -and ($tries -lt $maxTries))
-
-# Prompt user to enter code
-[System.Diagnostics.Stopwatch]::StartNew() | Set-Variable timer
-$deviceCodeResponse | Format-List | Out-String | Write-Debug
-Set-Clipboard -Value $deviceCodeResponse.user_code
-Write-Host $deviceCodeResponse.message
-Open-Browser -Url $deviceCodeResponse.verification_url
-
-# Poll for token
-Build-DeviceCodeTokenRequest -Code $deviceCodeResponse.device_code -State $state | Set-Variable tokenRequest
-do {
-    Start-Sleep -Seconds $deviceCodeResponse.interval
-    Invoke-RestMethod @tokenRequest `
-                      -SkipHttpErrorCheck `
-                      -StatusCodeVariable httpStatus `
-                      | Set-Variable tokenResponse
-    Write-Debug "httpStatus: ${httpStatus}"
-    $tokenResponse | Format-List | Out-String | Write-Debug
-} while (($tokenResponse.error -eq "authorization_pending") -and ($timer.Elapsed.TotalSeconds -le $deviceCodeResponse.expires_in))
-
-$accessToken = $tokenResponse.access_token
-if (!$accessToken) {
-    Write-Error "Failed to get access token"
-    $tokenResponse | Format-List
-    exit 1
+    Write-Debug "accessToken: ${accessToken}"
+    Write-Output $accessToken
+} elseif ($GrantType -eq "AuthorizationCode") {
+    if (!$Code -and !$RedirectUrl) {
+        $loginUrl = Build-LoginUrl
+        # Write-Host $logonUrl
+        Open-Browser -Url $loginUrl 
+    } else {
+        $tokenRequest = Build-TokenRequest -RedirectUrl $RedirectUrl
+        $tokenRequest | Format-Table | Out-String | Write-Debug
+        Invoke-RestMethod @tokenRequest | Set-Variable tokenResponse
+    
+        $accessToken = $tokenResponse.access_token
+        Write-Debug "accessToken: ${accessToken}"
+        Write-Output $accessToken
+    }
+} else {
+    throw "GrantType '${GrantType}' is not supported"
 }
-Write-Debug "accessToken: ${accessToken}"
-Write-Output $accessToken
