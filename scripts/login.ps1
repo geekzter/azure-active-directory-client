@@ -50,7 +50,26 @@ if (Test-Path $envVarsScript) {
 # Create token request
 $state = [guid]::NewGuid().Guid
 Build-DeviceCodeRequest -State $state | Set-Variable deviceCodeRequest
-Invoke-RestMethod @deviceCodeRequest | Set-Variable deviceCodeResponse
+
+# There may be a race condition if the app was just created, try to get device code a few times
+[int]$tries = 0
+[int]$maxTries = 5
+do {
+    $tries++
+    # Invoke-RestMethod @deviceCodeRequest | Set-Variable deviceCodeResponse
+    Invoke-RestMethod @deviceCodeRequest `
+                      -SkipHttpErrorCheck `
+                      -StatusCodeVariable httpStatus `
+                      | Set-Variable deviceCodeResponse
+    Write-Debug "httpStatus: ${httpStatus}"
+    $deviceCodeResponse | Format-List | Out-String | Write-Debug
+    if ($deviceCodeResponse.error_description -match "AADSTS700016") {
+        Write-Warning "The app doesn't exist (yet?), retrying in 5 seconds"
+        Start-Sleep -Seconds 5
+    }
+} while (($deviceCodeResponse.error_description -match "AADSTS700016") -and ($tries -lt $maxTries))
+
+# Prompt user to enter code
 [System.Diagnostics.Stopwatch]::StartNew() | Set-Variable timer
 $deviceCodeResponse | Format-List | Out-String | Write-Debug
 Set-Clipboard -Value $deviceCodeResponse.user_code
@@ -70,5 +89,10 @@ do {
 } while (($tokenResponse.error -eq "authorization_pending") -and ($timer.Elapsed.TotalSeconds -le $deviceCodeResponse.expires_in))
 
 $accessToken = $tokenResponse.access_token
+if (!$accessToken) {
+    Write-Error "Failed to get access token"
+    $tokenResponse | Format-List
+    exit 1
+}
 Write-Debug "accessToken: ${accessToken}"
 Write-Output $accessToken
