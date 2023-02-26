@@ -4,6 +4,10 @@ resource random_uuid "widgets_scope_id" {}
 
 resource azuread_application app_registration {
   display_name                 = var.name
+ 
+  # Required for device code flow to prevent 'error "invalid_client" occurred while requesting token: AADSTS7000218: The request body must contain the following parameter: 'client_assertion' or 'client_secret'.'
+  fallback_public_client_enabled = true 
+ 
   owners                       = [var.owner_object_id]
   sign_in_audience             = "AzureADMyOrg"
   
@@ -12,10 +16,12 @@ resource azuread_application app_registration {
   # }
   # device_only_auth_enabled     = null
 
-  # Required for device code flow to prevent 'error "invalid_client" occurred while requesting token: AADSTS7000218: The request body must contain the following parameter: 'client_assertion' or 'client_secret'.'
-  fallback_public_client_enabled = true 
   
-  optional_claims {}
+  # optional_claims {}
+
+  public_client {
+    redirect_uris              = ["http://localhost"]
+  }
 
   required_resource_access {
     resource_app_id            = var.resource_app_id
@@ -32,10 +38,6 @@ resource azuread_application app_registration {
       id                       = "e1fe6dd8-ba31-4d61-89e7-88639da4683d" # User.Read
       type                     = "Scope"
     }
-  }
-
-  public_client {
-    redirect_uris              = ["http://localhost"]
   }
 }
 
