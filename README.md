@@ -39,7 +39,7 @@ And:
 </p>   
 Steps:  
 
-- Set the `tenant_id` Terraform variable or `ARM_TENANT_ID` environment variable to a tenant you have [permission to consent applications](https://learn.microsoft.com/azure/active-directory/manage-apps/configure-user-consent?pivots=portal) in
+- Set the `tenant_id` Terraform variable or `ARM_TENANT_ID` environment variable to a tenant you have [permission to consent applications](consent.md) in
 - Set the `resource_application_name` Terraform variable to a well known application you want to sign in to, see [`application_published_app_ids`](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/application_published_app_ids) data source. You can also uncomment the `microsoft_applications` output to list well known application names.
 - Initialize workspace with `terraform init`
 - Provision resources with `terraform apply` or running [`deploy.ps1`](scripts/deploy.ps1)
@@ -48,4 +48,4 @@ Steps:
 Once the AAD application is provisioned, run [`login.ps1`](scripts/login.ps1) to get an AAD token for the resource configured. This script will propagate the appId of the AAD application created.
 
 ### End-to-end demo
-You can run AAD application provisioning and login using a single script: [`demo.ps1`](scripts/demo.ps1).
+You can run AAD application provisioning and login using a single script: [`demo.ps1`](scripts/demo.ps1). If you provision the AAD application and then immediately try to log in, you may enter a race condition where the application is not available yet.

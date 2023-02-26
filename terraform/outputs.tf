@@ -23,6 +23,9 @@ output application_tenant_id {
   value       = module.application.application_tenant_id
 }
 
+output environment_variables {
+  value       = local.environment_variables
+}
 output environment_variables_script_relative_path {
   value       = module.environment_variables.file_name
 }

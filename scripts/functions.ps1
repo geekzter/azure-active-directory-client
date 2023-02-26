@@ -1,8 +1,10 @@
+$scope = "${env:DEMO_RESOURCE_APP_ID}/.default"
+
 function Build-LoginUrl () {
     $State ??= [guid]::NewGuid().Guid
     $loginUrl = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/authorize"
     $loginUrl += "?client_id=${ClientId}"
-    $loginUrl += "&scope=$([uri]::EscapeDataString('499b84ac-1321-427f-aa17-267ca6975798/.default'))"
+    $loginUrl += "&scope=$([uri]::EscapeDataString('${scope}'))"
     $loginUrl += "&state=${State}"
     $loginUrl += "&response_type=code"
     $loginUrl += "&redirect_uri=$([uri]::EscapeDataString('http://localhost'))"
@@ -20,7 +22,7 @@ function Build-DeviceCodeRequest (
     $requestBody = @{
         client_id    = $ClientId
         redirect_uri = "https://login.microsoftonline.com/common/oauth2/nativeclient"
-        scope        = '499b84ac-1321-427f-aa17-267ca6975798/.default'
+        scope        = $scope
         state        = $State
     }
     $requestBody | Format-Table | Out-String | Write-Debug
@@ -88,7 +90,7 @@ function Build-TokenRequest (
         ContentType = 'application/x-www-form-urlencoded'
         Body        = @{
             client_id     = $ClientId
-            scope         = '499b84ac-1321-427f-aa17-267ca6975798/.default'
+            scope         = $scope
             code          = $Code
             redirect_uri  = 'http://localhost'
             grant_type    = 'authorization_code'
