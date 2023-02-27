@@ -1,6 +1,8 @@
 if ($env:DEMO_RESOURCE_APP_ID) {
+    $resource = "${env:DEMO_RESOURCE_APP_ID}"
     $scope = "${env:DEMO_RESOURCE_APP_ID}/.default"
 } else {
+    $resource = "499b84ac-1321-427f-aa17-267ca6975798"
     $scope = "499b84ac-1321-427f-aa17-267ca6975798/.default"
 }
 
@@ -27,19 +29,7 @@ function Build-DeviceCodeRequest (
     $requestBody = @{
         client_id    = $ClientId
         redirect_uri = "https://login.microsoftonline.com/common/oauth2/nativeclient"
-        # BUG: Scope ignored
-        # Using AAD Graph in JWT aud instead: 00000002-0000-0000-c000-000000000000
-        # Should work: 
-        # https://github.com/Azure-Samples/active-directory-verifiable-credentials/blob/fa8c5dfd03b4b1c1bd42c15e778a1ff839411de4/scripts/contractmigration/vc-migrate-off-storage.ps1#L46
-        # scope        = "$scope
-        # scope        = "openid ${scope} user_impersonation"
-        # scope        = "openid ${scope}"
-        # scope        = "https://499b84ac-1321-427f-aa17-267ca6975798/user_impersonation"
-        # scope        = "00000003-0000-0000-c000-000000000000/User.Read 00000002-0000-0000-c000-000000000000/User.Read $scope"
-        # scope        = "499b84ac-1321-427f-aa17-267ca6975798/user_impersonation 499b84ac-1321-427f-aa17-267ca6975798/.default https://499b84ac-1321-427f-aa17-267ca6975798/user_impersonation api://499b84ac-1321-427f-aa17-267ca6975798/user_impersonation"
-        # resource     = $scope
-
-        resource     = "499b84ac-1321-427f-aa17-267ca6975798"
+        resource     = $resource
         scope        = "user_impersonation"
         state        = $State
     }
