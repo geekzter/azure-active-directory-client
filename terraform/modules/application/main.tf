@@ -30,6 +30,15 @@ resource azuread_application app_registration {
     }
   }
   required_resource_access {
+    resource_app_id            = "00000002-0000-0000-c000-000000000000" # AAD Graph
+
+    resource_access {
+      id                       = "311a71cc-e848-46a1-bdf8-97ff7156d8e6" # User.Read
+      type                     = "Scope"
+    }
+  }
+
+  required_resource_access {
     resource_app_id            = "00000003-0000-0000-c000-000000000000" # Microsoft Graph
 
     resource_access {

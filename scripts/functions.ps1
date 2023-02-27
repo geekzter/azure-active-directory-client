@@ -27,7 +27,16 @@ function Build-DeviceCodeRequest (
     $requestBody = @{
         client_id    = $ClientId
         redirect_uri = "https://login.microsoftonline.com/common/oauth2/nativeclient"
-        scope        = $scope
+        # BUG: Scope ignored
+        # Using AAD Graph in JWT aud instead: 00000002-0000-0000-c000-000000000000
+        # Should work: 
+        # https://github.com/Azure-Samples/active-directory-verifiable-credentials/blob/fa8c5dfd03b4b1c1bd42c15e778a1ff839411de4/scripts/contractmigration/vc-migrate-off-storage.ps1#L46
+        # scope        = "$scope
+        # scope        = "openid ${scope} user_impersonation"
+        # scope        = "openid ${scope}"
+        # scope        = "https://499b84ac-1321-427f-aa17-267ca6975798/user_impersonation"
+        # scope        = "00000003-0000-0000-c000-000000000000/User.Read 00000002-0000-0000-c000-000000000000/User.Read $scope"
+        scope        = "00000003-0000-0000-c000-000000000000/User.Read 00000002-0000-0000-c000-000000000000/User.Read 499b84ac-1321-427f-aa17-267ca6975798/user_impersonation"
         state        = $State
     }
     $requestBody | Format-Table | Out-String | Write-Debug
@@ -136,6 +145,29 @@ function Configure-TerraformWorkspace (
     }
 }
 
+function Decode-JWT (
+    [parameter(Mandatory=$true)][string]$Token
+) {
+    try {
+        $tokenParts = $Token.Split(".")
+        [System.Text.Encoding]::ASCII.GetString([system.convert]::FromBase64String($tokenParts[0])) | Set-Variable tokenHeaderJson
+        Write-Debug "Token header JSON:"
+        Write-JsonResponse $tokenHeaderJson
+        $tokenHeaderJson | ConvertFrom-Json | Set-Variable tokenHeader
+        $tokenHeader | Format-List | Out-String | Write-Debug
+        Write-Output $tokenHeader
+
+        [System.Text.Encoding]::ASCII.GetString([system.convert]::FromBase64String($tokenParts[1])) | Set-Variable tokenBodyJson
+        Write-Debug "Token body JSON:"
+        Write-JsonResponse $tokenBodyJson
+        $tokenBodyJson | ConvertFrom-Json | Set-Variable tokenBody
+        $tokenBody | Format-List | Out-String | Write-Debug
+        Write-Output $tokenBody
+    } catch {
+        Write-Warning "Failed to decode JWT token"
+    }
+}
+
 function Get-TerraformDirectory {
     return (Join-Path (Split-Path $PSScriptRoot -Parent) "terraform")
 }
@@ -226,6 +258,20 @@ function Prompt-User (
     }
 }
 
+function Validate-JWT (
+    [string]$Token
+) {
+    if (!$Token) {
+        Write-Warning "No token provided"
+        return $false
+    }
+    Decode-JWT -Token $Token | Set-Variable tokenParts
+    if ($scope -notmatch $tokenParts[1].aud) {
+        Write-Warning "Scope '${scope}' does not match token audience '$($tokenParts[1].aud)'"
+        return $false
+    }
+}
+
 function Validate-ExitCode (
     [string]$cmd
 ) {
@@ -233,6 +279,18 @@ function Validate-ExitCode (
     if ($exitCode -ne 0) {
         Write-Warning "'$cmd' exited with status $exitCode"
         exit $exitCode
+    }
+}
+
+function Write-JsonResponse (
+    [parameter(Mandatory=$true)]
+    [ValidateNotNull()]
+    $Json
+) {
+    if (Get-Command jq -ErrorAction SilentlyContinue) {
+        $Json | jq -C | Write-Debug
+    } else {
+        Write-Debug $Json
     }
 }
 
