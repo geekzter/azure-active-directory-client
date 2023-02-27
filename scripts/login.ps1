@@ -120,4 +120,6 @@ if ($GrantType -eq "DeviceCode") {
     throw "GrantType '${GrantType}' is not supported"
 }
 
-Validate-JWT $accessToken
+if (!(Validate-JWT $accessToken)) {
+    exit 1
+}
