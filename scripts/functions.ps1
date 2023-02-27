@@ -36,7 +36,11 @@ function Build-DeviceCodeRequest (
         # scope        = "openid ${scope}"
         # scope        = "https://499b84ac-1321-427f-aa17-267ca6975798/user_impersonation"
         # scope        = "00000003-0000-0000-c000-000000000000/User.Read 00000002-0000-0000-c000-000000000000/User.Read $scope"
-        scope        = "00000003-0000-0000-c000-000000000000/User.Read 00000002-0000-0000-c000-000000000000/User.Read 499b84ac-1321-427f-aa17-267ca6975798/user_impersonation"
+        # scope        = "499b84ac-1321-427f-aa17-267ca6975798/user_impersonation 499b84ac-1321-427f-aa17-267ca6975798/.default https://499b84ac-1321-427f-aa17-267ca6975798/user_impersonation api://499b84ac-1321-427f-aa17-267ca6975798/user_impersonation"
+        # resource     = $scope
+
+        resource     = "499b84ac-1321-427f-aa17-267ca6975798"
+        scope        = "user_impersonation"
         state        = $State
     }
     $requestBody | Format-Table | Out-String | Write-Debug
@@ -146,28 +150,47 @@ function Configure-TerraformWorkspace (
 }
 
 function Decode-JWT (
-    [parameter(Mandatory=$true)][string]$Token
+    [parameter(Mandatory=$true)]
+    [string]
+    $Token
 ) {
+    if (!$Token) {
+        return $null
+    }
     try {
         $tokenParts = $Token.Split(".")
-        [System.Text.Encoding]::ASCII.GetString([system.convert]::FromBase64String($tokenParts[0])) | Set-Variable tokenHeaderJson
-        Write-Debug "Token header JSON:"
-        Write-JsonResponse $tokenHeaderJson
-        $tokenHeaderJson | ConvertFrom-Json | Set-Variable tokenHeader
-        $tokenHeader | Format-List | Out-String | Write-Debug
-        Write-Output $tokenHeader
 
-        [System.Text.Encoding]::ASCII.GetString([system.convert]::FromBase64String($tokenParts[1])) | Set-Variable tokenBodyJson
-        Write-Debug "Token body JSON:"
-        Write-JsonResponse $tokenBodyJson
-        $tokenBodyJson | ConvertFrom-Json | Set-Variable tokenBody
-        $tokenBody | Format-List | Out-String | Write-Debug
+        Decode-JWTSegment $tokenParts[0] | Set-Variable tokenHeader
+        Decode-JWTSegment $tokenParts[1] | Set-Variable tokenBody
+
+        Write-Output $tokenHeader
         Write-Output $tokenBody
     } catch {
         Write-Warning "Failed to decode JWT token"
     }
 }
 
+function Decode-JWTSegment (
+    [parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $TokenSegment
+) {
+    try {
+        if (($TokenSegment.Length % 4) -ne 0) {
+            $TokenSegment += ('=' * (4-($TokenSegment.Length % 4)))
+        }
+        [System.Text.Encoding]::ASCII.GetString([system.convert]::FromBase64String($TokenSegment)) | Set-Variable tokenSegmentJson
+        Write-Debug "Token segment JSON:"
+        Write-JsonResponse $tokenSegmentJson
+        $tokenSegmentJson | ConvertFrom-Json | Set-Variable tokenSegment
+        $tokenSegment | Format-List | Out-String | Write-Debug
+        Write-Output $tokenSegment
+    } catch {
+        Write-Warning "Failed to decode JWT token segment"
+        Write-Debug "Token segment: ${TokenSegment}"
+    }
+}
 function Get-TerraformDirectory {
     return (Join-Path (Split-Path $PSScriptRoot -Parent) "terraform")
 }
@@ -266,6 +289,10 @@ function Validate-JWT (
         return $false
     }
     Decode-JWT -Token $Token | Set-Variable tokenParts
+    if (!$tokenParts) {
+        Write-Warning "Failed to decode token"
+        return $false
+    }
     if ($scope -notmatch $tokenParts[1].aud) {
         Write-Warning "Scope '${scope}' does not match token audience '$($tokenParts[1].aud)'"
         return $false

@@ -98,6 +98,16 @@ if (Test-Path ../../azure-pipeline-scripts/scripts/install_agent.ps1) {
             Write-Warning "OrganizationUrl is not provided. Please set AZDO_ORG_SERVICE_URL environment variable or pass -OrganizationUrl parameter."
             exit 1
         }
+
+        $apiVersion = "7.1-preview.1"
+        $apiUrl = "${OrganizationUrl}/_apis/distributedtask/pools?api-version=${apiVersion}"
+        $requestHeaders = @{
+            Accept = "application/json"
+            Authorization = "Bearer $accessToken"
+            "Content-Type" = "application/json"
+        }
+        Invoke-RestMethod -Uri $apiUrl -Headers $requestHeaders -Method Get
+
         Push-Location -Path ../../azure-pipeline-scripts/scripts
 
         Prompt-User -PromptMessage "Install Azure Pipeline agent locally?" `
@@ -114,3 +124,4 @@ if (Test-Path ../../azure-pipeline-scripts/scripts/install_agent.ps1) {
 } else {
     Write-Verbose "Could not find ../../azure-pipeline-scripts/scripts/install_agent.ps1 script. Please clone https://github.com/geekzter/azure-pipeline-scripts into ../../azure-pipeline-scripts"
 }
+
