@@ -1,13 +1,25 @@
-if ($env:DEMO_RESOURCE_APP_ID) {
-    $resource = "${env:DEMO_RESOURCE_APP_ID}"
-    $scope = "${env:DEMO_RESOURCE_APP_ID}/.default"
-} else {
-    $resource = "499b84ac-1321-427f-aa17-267ca6975798"
-    $scope = "499b84ac-1321-427f-aa17-267ca6975798/.default"
+function Get-ResourceAppId () {
+    if ($env:DEMO_RESOURCE_APP_ID) {
+        $resource = "${env:DEMO_RESOURCE_APP_ID}"
+    } else {
+        Write-Warning "DEMO_RESOURCE_APP_ID environment variable not set."
+        exit 1
+    }
+    Write-Debug "resource: ${resource}"
+
+    return $resource
+}
+
+function Get-Scope () {
+    $resource = Get-ResourceAppId
+    $scope = "${resource}/.default"
+    Write-Debug "scope: ${scope}"
+
+    return $scope
 }
 
 function Build-LoginUrl () {
-    Write-Debug "scope: ${scope}"
+    $scope = Get-Scope
     $State ??= [guid]::NewGuid().Guid
     $loginUrl = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/authorize"
     $loginUrl += "?client_id=${ClientId}"
@@ -26,6 +38,7 @@ function Build-DeviceCodeRequest (
     [string]
     $State
 ) {
+    $resource = Get-ResourceAppId
     $requestBody = @{
         client_id    = $ClientId
         redirect_uri = "https://login.microsoftonline.com/common/oauth2/nativeclient"
@@ -92,6 +105,7 @@ function Build-TokenRequest (
     Write-Debug "Code: ${Code}"
     Write-Debug "State: ${State}"
 
+    $scope = Get-Scope
     $request = @{
         Method      = 'Post'
         Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/token"
@@ -151,10 +165,16 @@ function Decode-JWT (
         $tokenParts = $Token.Split(".")
 
         Decode-JWTSegment $tokenParts[0] | Set-Variable tokenHeader
+        Write-Debug "Token header:"
+        $tokenHeader | Format-List | Out-String | Write-Debug
         Decode-JWTSegment $tokenParts[1] | Set-Variable tokenBody
+        Write-Debug "Token body:"
+        $tokenBody | Format-List | Out-String | Write-Debug
 
-        Write-Output $tokenHeader
-        Write-Output $tokenBody
+        return New-Object PSObject -Property @{
+            Header = $tokenHeader
+            Body = $tokenBody
+        }
     } catch {
         Write-Warning "Failed to decode JWT token"
     }
@@ -173,9 +193,9 @@ function Decode-JWTSegment (
         [System.Text.Encoding]::ASCII.GetString([system.convert]::FromBase64String($TokenSegment)) | Set-Variable tokenSegmentJson
         Write-Debug "Token segment JSON:"
         Write-JsonResponse $tokenSegmentJson
-        $tokenSegmentJson | ConvertFrom-Json | Set-Variable tokenSegment
-        $tokenSegment | Format-List | Out-String | Write-Debug
-        Write-Output $tokenSegment
+        $tokenSegmentJson | ConvertFrom-Json | Set-Variable tokenSegmentObject
+        $tokenSegmentObject | Format-List | Out-String | Write-Debug
+        return $tokenSegmentObject
     } catch {
         Write-Warning "Failed to decode JWT token segment"
         Write-Debug "Token segment: ${TokenSegment}"
@@ -278,13 +298,14 @@ function Validate-JWT (
         Write-Warning "No token provided"
         return $false
     }
-    Decode-JWT -Token $Token | Set-Variable tokenParts
-    if (!$tokenParts) {
-        Write-Warning "Failed to decode token"
-        return $false
-    }
-    if ($scope -notmatch $tokenParts[1].aud) {
-        Write-Warning "Scope '${scope}' does not match token audience '$($tokenParts[1].aud)'"
+    Decode-JWT -Token $Token | Set-Variable tokenObject
+
+    $audience = $tokenObject.Body.aud
+    Write-Debug "Audience: $audience"
+
+    $resource = Get-ResourceAppId
+    if ($audience -notmatch $resource) {
+        Write-Warning "Audience '${audience}' does not match resource '${resource}'"
         return $false
     }
 }
@@ -305,7 +326,10 @@ function Write-JsonResponse (
     $Json
 ) {
     if (Get-Command jq -ErrorAction SilentlyContinue) {
-        $Json | jq -C | Write-Debug
+        if ($DebugPreference -ne "SilentlyContinue") {
+            $Json | jq -C
+        }
+        # $Json | jq -C | Write-Debug
     } else {
         Write-Debug $Json
     }
