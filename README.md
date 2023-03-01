@@ -36,11 +36,11 @@ Specific [settings](terraform/modules/application/main.tf) that make device code
 ```
 Which will show up in the portal as:
 <p align="center">
-<img src="visuals/public-client.png" width="640">
+<img src="visuals/public-client.png" width="689">
 </p>   
 And:
 <p align="center">
-<img src="visuals/api-permissions.png" width="640">
+<img src="visuals/api-permissions.png" width="1033">
 </p>   
 Steps:  
 
