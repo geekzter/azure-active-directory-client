@@ -8,7 +8,7 @@ If a tenant allows user consent:
 </p>   
 Users can consent themselves:
 <p align="center">
-<img src="visuals/user-consent.png" width="369">
+<img src="visuals/user-consent.png" width="392">
 </p>   
 
 ## Admin consent required
