@@ -10,13 +10,17 @@ Specific [settings](terraform/modules/application/main.tf) that make device code
 
 ```hcl
   fallback_public_client_enabled = true 
-  sign_in_audience             = "AzureADMyOrg"
+  public_client {
+    redirect_uris              = [
+      "https://login.microsoftonline.com/common/oauth2/nativeclient"
+    ]
+  }
   required_resource_access {
     # App id of the resource you want to access once logged in
-    # e.g. 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d for DataBricks
+    # e.g. 499b84ac-1321-427f-aa17-267ca6975798 for Azure DevOps
     resource_app_id            = var.resource_app_id
     resource_access {
-      # e.g. 739272be-e143-11e8-9f32-f2801f1b9fd1 for user_impersonation
+      # e.g. ee69721e-6c3a-468f-a9ec-302d16a4c599 for user_impersonation
       id                       = var.resource_access_id
       type                     = "Scope"
     }
@@ -28,6 +32,7 @@ Specific [settings](terraform/modules/application/main.tf) that make device code
       type                     = "Scope"
     }
   }
+  sign_in_audience             = "AzureADMyOrg"
 ```
 Which will show up in the portal as:
 <p align="center">
@@ -48,4 +53,4 @@ Steps:
 Once the AAD application is provisioned, run [`login.ps1`](scripts/login.ps1) to get an AAD token for the resource configured. This script will propagate the appId of the AAD application created.
 
 ### End-to-end demo
-You can run AAD application provisioning and login using a single script: [`demo.ps1`](scripts/demo.ps1). If you provision the AAD application and then immediately try to log in, you may enter a race condition where the application is not available yet.
+You can run AAD application provisioning and login using a single script: [`demo.ps1`](scripts/demo.ps1). If you provision the AAD application and then immediately try to log in, you may enter a race condition where the AAD application is not fully available yet.

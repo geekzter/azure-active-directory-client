@@ -5,7 +5,7 @@ variable resource_application_name {
 }
 
 variable owner_object_id {
-    default = ""
+  default                      = null
 }
 
 variable resource_prefix {
@@ -15,10 +15,10 @@ variable resource_prefix {
 
 variable resource_suffix {
   description                  = "The suffix to put at the of resource names created"
-  default                      = "" # Empty string triggers a random suffix
+  default                      = null # Empty string triggers a random suffix
 }
 
 variable tenant_id {
   type                         = string
-  default                      = ""
+  default                      = null
 }

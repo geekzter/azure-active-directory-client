@@ -15,8 +15,8 @@ locals {
     AZURE_TENANT_ID            = module.application.application_tenant_id
     DEMO_RESOURCE_APP_ID       = module.resource_application.application_id
   }
-  owner_object_id              = var.owner_object_id != "" ? lower(var.owner_object_id) : data.azuread_client_config.current.object_id
-  suffix                       = var.resource_suffix != "" ? lower(var.resource_suffix) : random_string.suffix.result
+  owner_object_id              = var.owner_object_id != null && var.owner_object_id != "" ? lower(var.owner_object_id) : data.azuread_client_config.current.object_id
+  suffix                       = var.resource_suffix != null && var.resource_suffix != "" ? lower(var.resource_suffix) : random_string.suffix.result
 }
 
 module resource_application {

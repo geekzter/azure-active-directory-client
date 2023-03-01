@@ -41,7 +41,7 @@ try {
     Prompt-User -PromptMessage "Create application with Terraform?" `
                 -ContinueMessage "Creating application with Terraform"
     $appWillBeCreated = [string]::IsNullOrEmpty((Get-TerraformOutput 'application_principal_id'))
-    Write-Host "Running $(Resolve-Path ./deploy.ps1)"
+    Write-Host "Running '$(Resolve-Path ./deploy.ps1)'"
     ./deploy.ps1 -apply
     Write-Host "`nEnterprise Application (Service Principal) url:"
     Get-TerraformOutput 'application_portal_url'
@@ -69,7 +69,7 @@ try {
     # Login with AAD
     Prompt-User -PromptMessage "Log into AAD (opens browser window)?" `
                 -ContinueMessage "Opening browser window to log into AAD..."
-    Write-Host "Running $(Resolve-Path ./login.ps1)"
+    Write-Host "Running '$(Resolve-Path ./login.ps1) -GrantType ${GrantType}'"
     ./login.ps1 -GrantType $GrantType | Set-Variable accessToken
 
 
@@ -99,24 +99,16 @@ if (Test-Path ../../azure-pipeline-scripts/scripts/install_agent.ps1) {
             exit 1
         }
 
-        $apiVersion = "7.1-preview.1"
-        $apiUrl = "${OrganizationUrl}/_apis/distributedtask/pools?api-version=${apiVersion}"
-        $requestHeaders = @{
-            Accept = "application/json"
-            Authorization = "Bearer $accessToken"
-            "Content-Type" = "application/json"
-        }
-        Invoke-RestMethod -Uri $apiUrl -Headers $requestHeaders -Method Get
-
         Push-Location -Path ../../azure-pipeline-scripts/scripts
 
         Prompt-User -PromptMessage "Install Azure Pipeline agent locally?" `
                     -ContinueMessage "Installing Azure Pipeline agent locally..."
-
-        Write-Host "Running $(Resolve-Path ./install_agent.ps1) to install agent"
+        Write-Host "Running '$(Resolve-Path ./install_agent.ps1)' to install agent"
         ./install_agent.ps1 -OrganizationUrl $OrganizationUrl -Token $accessToken
 
-        Write-Host "Running $(Resolve-Path ./install_agent.ps1) to remove agent"
+        Prompt-User -PromptMessage "Remove locally installed Azure Pipeline agent?" `
+                    -ContinueMessage "Removing locally installed Azure Pipeline agent..."
+        Write-Host "Running '$(Resolve-Path ./install_agent.ps1) -Remove' to remove agent"
         ./install_agent.ps1 -OrganizationUrl $OrganizationUrl -Token $accessToken -Remove
     } finally {
         Pop-Location

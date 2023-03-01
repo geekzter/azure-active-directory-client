@@ -24,7 +24,7 @@ param (
     [guid]
     $TenantId=($env:AZURE_TENANT_ID ?? $env:ARM_TENANT_ID),
 
-    [parameter(Mandatory=$false,ValueFromPipeline=$true)]
+    [parameter(Mandatory=$false,ParameterSetName="AuthorizationCode",ValueFromPipeline=$true)]
     [ValidateNotNullOrEmpty()]
     [string]
     $RedirectUrl,
