@@ -26,7 +26,7 @@ module resource_application {
 
 module application {
   source                       = "./modules/application"
-  name                         = "${var.resource_prefix}-aad-client-${terraform.workspace}-${local.suffix}"
+  name                         = "${var.resource_prefix}-${lower(var.resource_application_name)}-client-${terraform.workspace}-${local.suffix}"
   owner_object_id              = local.owner_object_id
   resource_access_id           = module.resource_application.oauth2_permission_scope_ids["user_impersonation"]
   resource_app_id              = module.resource_application.application_id

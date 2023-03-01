@@ -1,9 +1,9 @@
 # Azure Active Directory PowerShell Client
 
-Demonstrates the use of AAD sign in from PowerShell script, leveraging [device authorization grant flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code). See [Headless samples](https://learn.microsoft.com/azure/active-directory/develop/sample-v2-code#headless) for C#, Java, Python flavors.
+This repo demonstrates the use of AAD sign in from PowerShell script, leveraging [device authorization grant flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code). See [Azure DevOps](https://github.com/microsoft/azure-devops-auth-samples/tree/master/ManagedClientConsoleAppSample) and other [headless](https://learn.microsoft.com/azure/active-directory/develop/sample-v2-code#headless) samples for C#, Java, Python flavors.
 
 ## Setup
-This repo contains Terraform templates to create the AAD application needed to perform authentication, and PowerShell scripts to handle the authentication itself.
+This repo contains Terraform templates to create the AAD application needed to perform authentication, and PowerShell scripts to handle the authentication flow itself.
 
 ### Create AAD application with Terraform
 Specific [settings](terraform/modules/application/main.tf) that make device code flow work are:
