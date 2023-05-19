@@ -1,26 +1,30 @@
 output application_id {
-  value       = module.application.application_id
+  value       = module.enterprise_application.application_id
 }
 output application_name {
-  value       = module.application.application_name
+  value       = module.enterprise_application.application_name
 }
 output application_object_id {
-  value       = module.application.application_object_id
+  value       = module.enterprise_application.application_object_id
 }
 output application_principal_id {
-  value       = module.application.application_principal_id
+  value       = module.enterprise_application.application_principal_id
 }
 output application_portal_url {
   description = "This is the URL to the Azure Portal Enterprise Application (Service Principal) page for this application."
-  value       = module.application.application_portal_url 
+  value       = module.enterprise_application.application_portal_url 
 }
 output application_registration_portal_url {
   description = "This is the URL to the Azure Portal Application Registration page for this application."
-  value       = module.application.application_registration_portal_url 
+  value       = module.enterprise_application.application_registration_portal_url 
 }
 
-output application_tenant_id {
-  value       = module.application.application_tenant_id
+output application_registration_tenant_id {
+  value       = module.application_registration.application_tenant_id
+}
+
+output enterprise_application_tenant_id {
+  value       = module.enterprise_application.application_tenant_id
 }
 
 output environment_variables {

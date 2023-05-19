@@ -47,17 +47,3 @@ resource azuread_application app_registration {
     }
   }
 }
-
-resource azuread_service_principal enterprise_application {
-  application_id               = azuread_application.app_registration.application_id
-  owners                       = [var.owner_object_id]
-
-  feature_tags {
-    enterprise                 = true
-    hide                       = true
-  }
-
-  saml_single_sign_on {
-    relay_state                = null
-  }
-}
