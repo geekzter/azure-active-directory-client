@@ -43,16 +43,16 @@ try {
     $appWillBeCreated = [string]::IsNullOrEmpty((Get-TerraformOutput 'application_principal_id'))
     Write-Host "Running '$(Resolve-Path ./deploy.ps1)'"
     ./deploy.ps1 -apply
-    Write-Host "`nEnterprise Application (Service Principal) url:"
-    Get-TerraformOutput 'application_portal_url'
-    if ($appWillBeCreated) {
-        Open-Browser -Url (Get-TerraformOutput 'application_portal_url')
-    }
     Write-Host "`nApplication registration url:"
     Get-TerraformOutput 'application_registration_portal_url'
     if ($appWillBeCreated) {
         Open-Browser -Url (Get-TerraformOutput 'application_registration_portal_url')
     }
+    # Write-Host "`nEnterprise Application (Service Principal) url:"
+    # Get-TerraformOutput 'application_portal_url'
+    # if ($appWillBeCreated) {
+    #     Open-Browser -Url (Get-TerraformOutput 'application_portal_url')
+    # }
 
     # Propagate Terraform output to environment variables
     Join-Path (Split-Path $PSScriptRoot -Parent) data $Workspace set_environment_variables.ps1 | Set-Variable envVarsScript

@@ -50,7 +50,6 @@ if (Test-Path $envVarsScript) {
     Write-Warning "No environment variables script found for Terraform workspace '${Workspace}'. Pleas run deploy.ps1 to create resources."
     exit 1
 }
-. $envVarsScript
 
 # Create token request
 $state = [guid]::NewGuid().Guid

@@ -21,7 +21,8 @@ function Get-Scope () {
 function Build-LoginUrl () {
     $scope = Get-Scope
     $State ??= [guid]::NewGuid().Guid
-    $loginUrl = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/authorize"
+    # $loginUrl = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/authorize"
+    $loginUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
     $loginUrl += "?client_id=${ClientId}"
     $loginUrl += "&scope=$([uri]::EscapeDataString($scope))"
     $loginUrl += "&state=${State}"
@@ -49,7 +50,8 @@ function Build-DeviceCodeRequest (
     $requestBody | Format-Table | Out-String | Write-Debug
     $request = @{
         Method       = 'Post'
-        Uri          = "https://login.microsoftonline.com/${TenantID}/oauth2/devicecode"
+        # Uri          = "https://login.microsoftonline.com/${TenantID}/oauth2/devicecode"
+        Uri          = "https://login.microsoftonline.com/common/oauth2/devicecode"
         ContentType  = 'application/x-www-form-urlencoded'
         Body         = $requestBody
     }
@@ -76,7 +78,8 @@ function Build-DeviceCodeTokenRequest (
     $requestBody | Format-Table | Out-String | Write-Debug
     $request = @{
         Method      = 'POST'
-        Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/token"
+        # Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/token"
+        Uri         = "https://login.microsoftonline.com/common/oauth2/token"
         ContentType = 'application/x-www-form-urlencoded'
         Body        = $requestBody
     }
@@ -108,7 +111,8 @@ function Build-TokenRequest (
     $scope = Get-Scope
     $request = @{
         Method      = 'Post'
-        Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/token"
+        # Uri         = "https://login.microsoftonline.com/${TenantId}/oauth2/v2.0/token"
+        Uri         = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
         ContentType = 'application/x-www-form-urlencoded'
         Body        = @{
             client_id     = $ClientId

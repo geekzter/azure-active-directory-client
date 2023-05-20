@@ -11,8 +11,8 @@ resource random_string suffix {
 
 locals {
   environment_variables        = {
-    AZURE_CLIENT_ID            = module.enterprise_application.application_id
-    AZURE_TENANT_ID            = module.enterprise_application.application_tenant_id
+    AZURE_CLIENT_ID            = module.application_registration.application_id
+    AZURE_TENANT_ID            = data.azuread_client_config.client.tenant_id
     DEMO_RESOURCE_APP_ID       = module.resource_application.application_id
   }
   suffix                       = var.resource_suffix != null && var.resource_suffix != "" ? lower(var.resource_suffix) : random_string.suffix.result
@@ -35,7 +35,12 @@ module application_registration {
 
 module enterprise_application {
   source                       = "./modules/enterprise-application"
+  providers                    = {
+    azuread                    = azuread.client
+  }
   authn_app_id                 = module.application_registration.application_id
+
+  count                        = var.provision_service_principal ? 1 : 0
 }
 
 module environment_variables {

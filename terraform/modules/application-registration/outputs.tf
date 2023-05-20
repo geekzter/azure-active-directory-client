@@ -14,3 +14,6 @@ output application_registration_portal_url {
 output application_tenant_id {
   value       = data.azuread_client_config.home.tenant_id
 }
+output application_identifier_uri {
+  value       = local.identifier_uri
+}

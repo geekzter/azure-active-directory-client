@@ -8,6 +8,11 @@ variable home_tenant_id {
   default                      = null
 }
 
+variable provision_service_principal {
+  description                  = "Whether to provision a service principal for the application"
+  default                      = true
+}
+
 variable resource_application_name {
   # https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/application_published_app_ids
   description                  = "The name of the application to grant resource access to (no apaces)"

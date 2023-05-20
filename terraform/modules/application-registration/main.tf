@@ -1,5 +1,15 @@
 data azuread_client_config home {}
 
+data azuread_domains tenant_domain {
+  only_default                 = true
+}
+
+resource random_uuid app_uri_identifier {}
+
+locals {
+  identifier_uri               = "api://${data.azuread_domains.tenant_domain.domains[0].domain_name}/${random_uuid.app_uri_identifier.result}"
+}
+
 resource azuread_application app_registration {
   display_name                 = var.name
  
@@ -8,10 +18,10 @@ resource azuread_application app_registration {
 
   feature_tags {
     # enterprise                 = true
-    gallery                      = true
+    gallery                    = true
     # hide                       = true
   }
- 
+  identifier_uris              = [local.identifier_uri]
   owners                       = [data.azuread_client_config.home.object_id]
   sign_in_audience             = "AzureADandPersonalMicrosoftAccount"
   

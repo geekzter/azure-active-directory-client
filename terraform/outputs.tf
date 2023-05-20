@@ -1,18 +1,21 @@
 output application_id {
-  value       = module.enterprise_application.application_id
+  value       = module.application_registration.application_id
+}
+output application_identifier_uri {
+  value       = module.application_registration.application_identifier_uri
 }
 output application_name {
-  value       = module.enterprise_application.application_name
+  value       = module.application_registration.application_name
 }
 output application_object_id {
-  value       = module.enterprise_application.application_object_id
+  value       = var.provision_service_principal ? module.enterprise_application[0].application_object_id : null
 }
 output application_principal_id {
-  value       = module.enterprise_application.application_principal_id
+  value       = var.provision_service_principal ? module.enterprise_application[0].application_principal_id : null
 }
 output application_portal_url {
   description = "This is the URL to the Azure Portal Enterprise Application (Service Principal) page for this application."
-  value       = module.enterprise_application.application_portal_url 
+  value       = var.provision_service_principal ? module.enterprise_application[0].application_portal_url : null
 }
 output application_registration_portal_url {
   description = "This is the URL to the Azure Portal Application Registration page for this application."
@@ -23,8 +26,12 @@ output application_registration_tenant_id {
   value       = module.application_registration.application_tenant_id
 }
 
+output client_tenant_id {
+  value       = data.azuread_client_config.client.tenant_id
+}
+
 output enterprise_application_tenant_id {
-  value       = module.enterprise_application.application_tenant_id
+  value       = var.provision_service_principal ? module.enterprise_application[0].application_tenant_id : null
 }
 
 output environment_variables {
@@ -35,6 +42,10 @@ output environment_variables_script_relative_path {
 }
 output environment_variables_script_absolute_path {
   value       = abspath(module.environment_variables.file_name)
+}
+
+output home_tenant_id {
+  value       = data.azuread_client_config.home.tenant_id
 }
 
 # Uncomment to discover common application names and IDs
