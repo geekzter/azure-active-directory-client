@@ -6,7 +6,7 @@ data azuread_application app_registration {
 
 resource azuread_service_principal enterprise_application {
   application_id               = data.azuread_application.app_registration.application_id
-  owners                       = [var.owner_object_id]
+  owners                       = [data.azuread_client_config.current.object_id]
 
   feature_tags {
     enterprise                 = true

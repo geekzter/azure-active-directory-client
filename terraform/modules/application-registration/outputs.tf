@@ -12,5 +12,5 @@ output application_registration_portal_url {
   value       = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/quickStartType~/null/sourceType/Microsoft_AAD_IAM/appId/${azuread_application.app_registration.application_id}/objectId/${azuread_application.app_registration.id}/isMSAApp~/false/defaultBlade/Overview/appSignInAudience/AzureADMyOrg/servicePrincipalCreated~/true"
 }
 output application_tenant_id {
-  value       = data.azuread_client_config.current.tenant_id
+  value       = data.azuread_client_config.home.tenant_id
 }

@@ -16,7 +16,7 @@ output application_portal_url {
 }
 output application_registration_portal_url {
   description = "This is the URL to the Azure Portal Application Registration page for this application."
-  value       = module.enterprise_application.application_registration_portal_url 
+  value       = module.application_registration.application_registration_portal_url 
 }
 
 output application_registration_tenant_id {

@@ -1,4 +1,4 @@
-data azuread_client_config current {}
+data azuread_client_config home {}
 
 resource azuread_application app_registration {
   display_name                 = var.name
@@ -7,12 +7,17 @@ resource azuread_application app_registration {
   fallback_public_client_enabled = true 
 
   feature_tags {
-    enterprise                 = true
-    hide                       = true
+    # enterprise                 = true
+    gallery                      = true
+    # hide                       = true
   }
  
-  owners                       = [var.owner_object_id]
-  sign_in_audience             = "AzureADMyOrg"
+  owners                       = [data.azuread_client_config.home.object_id]
+  sign_in_audience             = "AzureADandPersonalMicrosoftAccount"
+  
+  api {
+    requested_access_token_version = 2
+  }
   
   public_client {
     redirect_uris              = [
