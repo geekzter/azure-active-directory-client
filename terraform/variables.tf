@@ -10,7 +10,7 @@ variable home_tenant_id {
 
 variable provision_service_principal {
   description                  = "Whether to provision a service principal for the application"
-  default                      = true
+  default                      = false
 }
 
 variable resource_application_name {
