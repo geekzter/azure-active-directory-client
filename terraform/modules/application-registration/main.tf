@@ -1,4 +1,14 @@
-data azuread_client_config current {}
+data azuread_client_config home {}
+
+data azuread_domains tenant_domain {
+  only_default                 = true
+}
+
+resource random_uuid app_uri_identifier {}
+
+locals {
+  identifier_uri               = "api://${data.azuread_domains.tenant_domain.domains[0].domain_name}/${random_uuid.app_uri_identifier.result}"
+}
 
 resource azuread_application app_registration {
   display_name                 = var.name
@@ -7,12 +17,17 @@ resource azuread_application app_registration {
   fallback_public_client_enabled = true 
 
   feature_tags {
-    enterprise                 = true
-    hide                       = true
+    # enterprise                 = true
+    gallery                    = true
+    # hide                       = true
   }
- 
-  owners                       = [var.owner_object_id]
-  sign_in_audience             = "AzureADMyOrg"
+  identifier_uris              = [local.identifier_uri]
+  owners                       = [data.azuread_client_config.home.object_id]
+  sign_in_audience             = "AzureADandPersonalMicrosoftAccount"
+  
+  api {
+    requested_access_token_version = 2
+  }
   
   public_client {
     redirect_uris              = [
@@ -45,19 +60,5 @@ resource azuread_application app_registration {
       id                       = "e1fe6dd8-ba31-4d61-89e7-88639da4683d" # User.Read
       type                     = "Scope"
     }
-  }
-}
-
-resource azuread_service_principal enterprise_application {
-  application_id               = azuread_application.app_registration.application_id
-  owners                       = [var.owner_object_id]
-
-  feature_tags {
-    enterprise                 = true
-    hide                       = true
-  }
-
-  saml_single_sign_on {
-    relay_state                = null
   }
 }
